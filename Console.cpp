@@ -213,7 +213,9 @@ void Console::SetKeyHandler(EscapedKeys key, Console::KeyHandler handler)
 
 void Console::Clear()
 {
-    std::cout << "\x1b[2J";
+    std::cout << "\x1b[39m"
+        << "\x1b[49m" 
+        << "\x1b[2J";
     std::flush(std::cout);
 }
 
