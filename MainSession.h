@@ -2,6 +2,7 @@
 #include <optional>
 #include "Session.h"
 #include "Console.h"
+#include "GameSession.h"
 
 namespace Snake
 {
@@ -19,7 +20,6 @@ namespace Snake
         using Session<int, int>::Activate;
         void Activate(const int& params) override;
         void Deactivate() override;
-        void Pause() override;
         void Close() override;
     private:
         class MainMenu
@@ -71,6 +71,7 @@ namespace Snake
         Tev& _tev;
         Console& _console;
         MainMenu _mainMenu;
+        GameSession _gameSession;
         bool _active{false};
         bool _closed{false};
     };

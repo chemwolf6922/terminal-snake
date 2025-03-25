@@ -5,7 +5,10 @@
 using namespace Snake;
 
 MainSession::MainSession(Tev& tev, Console& console)
-    : _tev(tev), _console(console), _mainMenu(console, 30, 15)
+    : _tev(tev),
+      _console(console),
+      _mainMenu(console, 30, 15),
+      _gameSession(tev, console)
 {
 }
 
@@ -36,6 +39,19 @@ void MainSession::Activate(const int& params)
     /** Activate options */
     _mainMenu.AddOption("[    Start game    ]", [this](){
         /** @todo */
+        GameSessionParams params{1000};
+        SwitchTo(_gameSession, params, std::function<void(const GameSessionResult&)>(
+            [this](const GameSessionResult& result){
+                if (!result.finished)
+                {
+                    // Exit to main menu directly if game is not finished
+                    Activate(0);
+                    return;
+                }
+                /** @todo switch to the game over session */
+                Activate(0);
+            }
+        ));
     });
     _mainMenu.AddOption("[     Settings     ]", [this](){
         /** @todo */
@@ -75,11 +91,6 @@ void MainSession::Deactivate()
     _mainMenu.Clear();
 }
 
-void MainSession::Pause()
-{
-    Deactivate();
-}
-
 void MainSession::Close()
 {
     if (_closed)
@@ -89,6 +100,9 @@ void MainSession::Close()
     Deactivate();
     /** This MUST be set after deactivate */
     _closed = true;
+    /** propagate close */
+    _gameSession.Close();
+    /** @todo */
 }
 
 MainSession::MainMenu::Option::Option(
@@ -108,7 +122,7 @@ void MainSession::MainMenu::Option::Select()
 void MainSession::MainMenu::Option::Deselect()
 {
     _selected = false;
-    _console.PutString(_x, _y, _text, Console::ForegroundColor::Default);
+    _console.PutString(_x, _y, _text);
 }
 
 std::function<void()> MainSession::MainMenu::Option::GetAction() const

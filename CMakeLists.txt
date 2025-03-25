@@ -23,7 +23,8 @@ add_executable(snake
     main.cpp
     SignalManager.cpp
     Console.cpp
-    MainSession.cpp)
+    MainSession.cpp
+    GameSession.cpp)
 
 target_link_libraries(snake
     tev-cpp)

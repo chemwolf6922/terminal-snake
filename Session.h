@@ -29,18 +29,7 @@ namespace Snake
             Activate(params);
         }
         virtual void Activate(const I& params) = 0;
-        /**
-         * @brief Called before switching back to the previous session.
-         * 
-         */
         virtual void Deactivate() = 0;
-        /**
-         * @brief Called before switching to another session.
-         * @note There is no resume method as the resume operation should 
-         *     happen in the callback of the next session.
-         * 
-         */
-        virtual void Pause() = 0;
         /**
          * @note This should only be propagated if this session 
          *      holds the ownership of the sub-sessions.
@@ -51,9 +40,9 @@ namespace Snake
         
     protected:
         template <typename IN, typename ON>
-        void SwitchTo(const Session<IN, ON>& next, const IN& params, const std::function<void(const ON&)>& callback)
+        void SwitchTo(Session<IN, ON>& next, const IN& params, const std::function<void(const ON&)>& callback)
         {
-            Pause();
+            Deactivate();
             next.Activate(params, callback);
         }
 
