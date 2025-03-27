@@ -6,6 +6,7 @@
 #include "Session.h"
 #include "Console.h"
 #include "Constants.h"
+#include "GameOverSession.h"
 
 namespace Snake
 {
@@ -17,7 +18,6 @@ namespace Snake
     struct GameSessionResult
     {
         bool finished{false};
-        int score{0};
     };
     class GameSession : public Session<GameSessionParams, GameSessionResult>
     {
@@ -100,6 +100,7 @@ namespace Snake
         Tev& _tev;
         Console& _console;
         ScoreBar _score;
+        GameOverSession _gameOverSession;
         bool _active{false};
         bool _closed{false};
         std::vector<CellType> _cells{};
@@ -117,5 +118,6 @@ namespace Snake
         void DirectionInputHandler(const Direction& direction);
         std::string CellTypeToChar(CellType cellType, bool simpleChar) const;
         Coordinate CellToLocation(const Coordinate& cellCoordinate) const;
+        void GameOver(const GameOverSessionParams& params);
     };
 }

@@ -6,7 +6,8 @@ using namespace Snake;
 GameSession::GameSession(Tev& tev, Console& console)
     : _tev(tev),
       _console(console),
-      _score(console, 0, Constants::DISPLAY_HEIGHT - 1)
+      _score(console, 0, Constants::DISPLAY_HEIGHT - 1),
+      _gameOverSession(tev, console)
 {
 }
 
@@ -110,7 +111,7 @@ void GameSession::SetupGame(bool reset)
         DirectionInputHandler(Direction::Right);
     });
     _console.SetKeyHandler('\x1b', [this](){
-        SwitchBack({false, _score.GetScore()});
+        SwitchBack({false});
     });
     /** start frame timer */
     _frameTimerHandle = _tev.SetTimeout(
@@ -142,9 +143,9 @@ void GameSession::Close()
         return;
     }
     Deactivate();
-    /** @todo clear game states */
     /** This MUST be set after deactivate */
     _closed = true;
+    _gameOverSession.Close();
 }
 
 GameSession::Direction GameSession::OppositeDirection(const Direction& direction) const
@@ -170,8 +171,13 @@ void GameSession::FrameHandler()
     _frameTimerHandle = _tev.SetTimeout(
         std::bind(&GameSession::FrameHandler, this),
         _params->frameTime);
-    _direction = _pendingDirection;
     auto head = _snake.front();
+    auto previousHeadType = (_direction == Direction::Up) ? CellType::SnakeUp :
+        (_direction == Direction::Down) ? CellType::SnakeDown :
+        (_direction == Direction::Left) ? CellType::SnakeLeft :
+        CellType::SnakeRight;
+    _direction = _pendingDirection;
+    auto previousHeadLocation = CellToLocation(head);
     Coordinate nextHead = head;
     switch (_direction)
     {
@@ -190,6 +196,7 @@ void GameSession::FrameHandler()
     default:
         throw std::invalid_argument("Invalid direction");
     }
+    auto headLocation = CellToLocation(nextHead);
     auto nextHeadCellType = _cells[nextHead.x + nextHead.y*_width];
     bool generateFood = false;
     switch (nextHeadCellType)
@@ -209,7 +216,12 @@ void GameSession::FrameHandler()
         generateFood = true;
     } break;
     default:
-        SwitchBack({true, _score.GetScore()});
+        GameOver({
+            _score.GetScore(),
+            previousHeadLocation.x,
+            previousHeadLocation.y,
+            CellTypeToChar(previousHeadType, _params->useSimpleGraphics)
+        });
         return;
     }
     auto headType = (_direction == Direction::Up) ? CellType::SnakeUp :
@@ -219,13 +231,18 @@ void GameSession::FrameHandler()
     _cells[nextHead.x + nextHead.y*_width] = headType;
     _snake.push_front(nextHead);
     auto headChar = CellTypeToChar(headType, _params->useSimpleGraphics);
-    auto headLocation = CellToLocation(nextHead);
     _console.PutString(headLocation.x, headLocation.y, headChar);
     if (generateFood)
     {
         if (_emptyCells.Empty())
         {
-            SwitchBack({true, _score.GetScore()});
+            GameOver({
+                _score.GetScore(),
+                previousHeadLocation.x,
+                previousHeadLocation.y,
+                CellTypeToChar(previousHeadType, _params->useSimpleGraphics)
+            });
+            return;
         }
         _food = _emptyCells.PopRandom();
         _cells[_food.x + _food.y*_width] = CellType::Food;
@@ -287,6 +304,16 @@ std::string GameSession::CellTypeToChar(CellType cellType, bool simpleChar) cons
             throw std::invalid_argument("Invalid cell type");
         }
     }
+}
+
+void GameSession::GameOver(const GameOverSessionParams& params)
+{
+    SwitchTo(
+        _gameOverSession,
+        params,
+        std::function<void (const int&)>([this](const auto&){
+            SwitchBack({true});
+        }));
 }
 
 GameSession::Coordinate GameSession::CellToLocation(const Coordinate& cell) const

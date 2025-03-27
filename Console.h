@@ -64,6 +64,7 @@ namespace Snake
         };
 
         typedef std::function<void()> KeyHandler;
+        typedef std::function<void(const std::string_view&)> StringHandler;
         typedef std::function<void(const std::string_view&)> ErrorHandler;
 
         Console(Tev& tev);
@@ -91,6 +92,8 @@ namespace Snake
 
         void SetKeyHandler(char key, KeyHandler handler);
         void SetKeyHandler(EscapedKeys key, KeyHandler handler);
+
+        void GetString(size_t x, size_t y, size_t maxLength, StringHandler handler);
 
         void SetErrorHandler(ErrorHandler handler);
     private:

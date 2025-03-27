@@ -38,18 +38,13 @@ void MainSession::Activate(const int& params)
     _console.PutString(0,5,banner);
     /** Activate options */
     _mainMenu.AddOption("[    Start game    ]", [this](){
-        /** @todo */
-        GameSessionParams params{1000};
+        /** @todo get frame time from settings */
+        GameSessionParams params{300};
         SwitchTo(_gameSession, params, std::function<void(const GameSessionResult&)>(
             [this](const GameSessionResult& result){
-                if (!result.finished)
-                {
-                    // Exit to main menu directly if game is not finished
-                    Activate(0);
-                    return;
-                }
-                /** @todo switch to the game over session */
+                (void)result;
                 Activate(0);
+                /** @todo if the game did not finish, resume instead of starting a new one */
             }
         ));
     });
