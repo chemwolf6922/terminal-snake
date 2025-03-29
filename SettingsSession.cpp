@@ -32,7 +32,6 @@ void SettingsSession::Activate(const int& params)
         Constants::DISPLAY_HEIGHT - 1);
     /** Init Menu */
     _settings = Settings::Load();
-    _menu.Clear();
     _menu.AddOption(std::make_shared<SettingsSession::Menu::BoolOption>(
         "Use simple graphics",
         _settings.useSimpleGraphics,

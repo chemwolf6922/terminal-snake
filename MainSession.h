@@ -42,7 +42,7 @@ namespace Snake
                 Console& _console;
                 size_t _x;
                 size_t _y;
-                std::string_view _text;
+                std::string _text;
                 std::function<void()> _action;
                 bool _selected{false};
             };
@@ -81,5 +81,6 @@ namespace Snake
         Settings _settings{};
         bool _active{false};
         bool _closed{false};
+        bool _resume{false};
     };
 }

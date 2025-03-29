@@ -47,18 +47,21 @@ void MainSession::Activate(const int& params)
         Constants::DISPLAY_WIDTH - 1,
         Constants::DISPLAY_HEIGHT - 1);
     /** Activate options */
-    _mainMenu.AddOption("[    Start game    ]", [this](){
+    std::string startGameTitle = _resume ? 
+        "[    Resume game   ]" : 
+        "[    Start game    ]";
+    _mainMenu.AddOption(startGameTitle, [this](){
         int frameTime = _settings.gameSpeed == Settings::GameSpeed::Slow ? 300 :
                        _settings.gameSpeed == Settings::GameSpeed::Normal ? 200 :
                        _settings.gameSpeed == Settings::GameSpeed::Fast ? 133 : 88;
         GameSessionParams params{
             frameTime,
-            _settings.useSimpleGraphics
+            _settings.useSimpleGraphics,
+            !_resume
         };
         SwitchTo(_gameSession, params, std::function<void(const GameSessionResult&)>(
             [this](const auto& result){
-                (void)result;
-                /** @todo if the game did not finish, resume instead of starting a new one */
+                _resume = !result.finished;
                 Activate(0);
             }
         ));

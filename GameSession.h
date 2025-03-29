@@ -14,6 +14,7 @@ namespace Snake
     {
         int frameTime{1000};
         bool useSimpleGraphics{false};
+        bool newGame{true};
     };
     struct GameSessionResult
     {
@@ -103,6 +104,7 @@ namespace Snake
         GameOverSession _gameOverSession;
         bool _active{false};
         bool _closed{false};
+        bool _finished{false};
         std::vector<CellType> _cells{};
         std::deque<Coordinate> _snake{};
         Coordinate _food{};

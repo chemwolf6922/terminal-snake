@@ -25,13 +25,14 @@ void GameSession::Activate(const GameSessionParams& params)
     }
     _active = true;
     _params = params;
-    SetupGame();
+    SetupGame(_params->newGame);
 }
 
 void GameSession::SetupGame(bool reset)
 {
-    if (reset || _cells.empty())
+    if (reset || _finished || _cells.empty())
     {
+        _finished = false;
         /** Clear cells */
         _cells.clear();
         _emptyCells.Clear();
@@ -296,6 +297,7 @@ std::string GameSession::CellTypeToChar(CellType cellType, bool simpleChar) cons
 
 void GameSession::GameOver(const GameOverSessionParams& params)
 {
+    _finished = true;
     SwitchTo(
         _gameOverSession,
         params,
