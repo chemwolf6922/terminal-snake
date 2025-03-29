@@ -1,5 +1,6 @@
-#include "GameSession.h"
 #include <stdexcept>
+#include "GameSession.h"
+#include "Utility.h"
 
 using namespace Snake;
 
@@ -62,25 +63,10 @@ void GameSession::SetupGame(bool reset)
     }
     _console.Clear();
     /** Draw border */
-    std::string border = "┏";
-    for (int i = 1; i < Constants::DISPLAY_WIDTH - 1; i++)
-    {
-        border += "━";
-    }
-    border += "┓";
-    _console.PutString(0, 0, border);
-    for (int i = 1; i < Constants::DISPLAY_HEIGHT - 2; i++)
-    {
-        _console.PutString(0, i, "┃");
-        _console.PutString(Constants::DISPLAY_WIDTH - 1, i, "┃");
-    }
-    border = "┗";
-    for (int i = 1; i < Constants::DISPLAY_WIDTH - 1; i++)
-    {
-        border += "━";
-    }
-    border += "┛";
-    _console.PutString(0, Constants::DISPLAY_HEIGHT - 2, border);
+    Utility::DrawBox(
+        _console,
+        0, 0,
+        Constants::DISPLAY_WIDTH - 1, Constants::DISPLAY_HEIGHT - 2);
     /** Draw snake */
     for (const auto& position : _snake)
     {

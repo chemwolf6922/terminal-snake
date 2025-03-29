@@ -9,6 +9,8 @@ namespace Snake
         constexpr std::string_view SAVE_FILE_ROOT = ".terminal_snake";
         constexpr std::string_view LEADER_BOARD_FILE = "leaderboard.json";
         constexpr int LEADER_BOARD_SIZE = 10;
+        /** This is not a least upper bound */
+        constexpr int SCORE_UPPER_BOUND = 99999;
         constexpr std::string_view SETTINGS_FILE = "settings.json";
     }
 }

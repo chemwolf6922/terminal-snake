@@ -26,6 +26,7 @@ add_executable(snake
     MainSession.cpp
     GameSession.cpp
     GameOverSession.cpp
+    LeaderBoardSession.cpp
     LeaderBoard.cpp
     Utility.cpp)
 

@@ -1,6 +1,6 @@
-#include "MainSession.h"
-
 #include <stdexcept>
+#include "MainSession.h"
+#include "Utility.h"
 
 using namespace Snake;
 
@@ -8,7 +8,8 @@ MainSession::MainSession(Tev& tev, Console& console)
     : _tev(tev),
       _console(console),
       _mainMenu(console, 30, 15),
-      _gameSession(tev, console)
+      _gameSession(tev, console),
+      _leaderBoardSession(console)
 {
 }
 
@@ -25,8 +26,8 @@ void MainSession::Activate(const int& params)
         return;
     }
     _active = true;
-    /** Show banner */
     _console.Clear();
+    /** Show banner */
     /** There is an additional \n at the start */
     constexpr std::string_view banner = R"(
                  _______..__   __.      ___       __  ___  _______ 
@@ -36,12 +37,18 @@ void MainSession::Activate(const int& params)
             .----)   |   |  |\   |  /  _____  \  |  .  \  |  |____ 
             |_______/    |__| \__| /__/     \__\ |__|\__\ |_______|)";
     _console.PutString(0,5,banner);
+    /** Draw boarder */
+    Utility::DrawBox(
+        _console,
+        0, 0,
+        Constants::DISPLAY_WIDTH - 1,
+        Constants::DISPLAY_HEIGHT - 1);
     /** Activate options */
     _mainMenu.AddOption("[    Start game    ]", [this](){
         /** @todo get frame time from settings */
         GameSessionParams params{300};
         SwitchTo(_gameSession, params, std::function<void(const GameSessionResult&)>(
-            [this](const GameSessionResult& result){
+            [this](const auto& result){
                 (void)result;
                 Activate(0);
                 /** @todo if the game did not finish, resume instead of starting a new one */
@@ -52,7 +59,11 @@ void MainSession::Activate(const int& params)
         /** @todo */
     });
     _mainMenu.AddOption("[    High scores   ]", [this](){
-        /** @todo */
+        SwitchTo(_leaderBoardSession, 0, std::function<void(const int&)>(
+            [this](const auto&){
+                Activate(0);
+            }
+        ));
     });
     _mainMenu.AddOption("[       Exit       ]", [this](){
         SwitchBack(0);
@@ -97,6 +108,7 @@ void MainSession::Close()
     _closed = true;
     /** propagate close */
     _gameSession.Close();
+    _leaderBoardSession.Close();
     /** @todo */
 }
 

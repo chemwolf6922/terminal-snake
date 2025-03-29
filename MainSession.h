@@ -3,6 +3,7 @@
 #include "Session.h"
 #include "Console.h"
 #include "GameSession.h"
+#include "LeaderBoardSession.h"
 
 namespace Snake
 {
@@ -72,6 +73,7 @@ namespace Snake
         Console& _console;
         MainMenu _mainMenu;
         GameSession _gameSession;
+        LeaderBoardSession _leaderBoardSession;
         bool _active{false};
         bool _closed{false};
     };

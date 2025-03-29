@@ -12,18 +12,18 @@ std::filesystem::path LeaderBoard::GetFilePath()
     return Utility::GetSaveFileRoot() / Constants::LEADER_BOARD_FILE;
 }
 
-bool LeaderBoard::Score::operator<(const Score& other) const
+bool LeaderBoard::Score::operator>(const Score& other) const
 {
     if (score != other.score)
     {
-        return score < other.score;
+        return score > other.score;
     }
     if (timestamp != other.timestamp)
     {
         /** Older score is considred higher */
-        return timestamp > other.timestamp;
+        return timestamp < other.timestamp;
     }
-    return name < other.name;
+    return name > other.name;
 }
 
 void LeaderBoard::SaveScore(const std::string_view& name, int scoreNum)
@@ -37,7 +37,7 @@ void LeaderBoard::SaveScore(const std::string_view& name, int scoreNum)
     Score score{ nameStr, scoreNum, now };
     std::vector<Score> scores = LoadScores();
     scores.push_back(score);
-    std::sort(scores.begin(), scores.end());
+    std::sort(scores.begin(), scores.end(), std::greater<Score>());
     if (scores.size() > Constants::LEADER_BOARD_SIZE)
     {
         scores.resize(Constants::LEADER_BOARD_SIZE);
@@ -86,12 +86,19 @@ std::vector<LeaderBoard::Score> LeaderBoard::LoadScores()
             || !(item.contains("score") && item["score"].is_number())
             || !(item.contains("timestamp") && item["timestamp"].is_number()))
         {
-            throw std::runtime_error("Invalid leaderboard file format");
+            /** Ignore invalid values */
+            continue;
+        }
+        int score = item["score"].get<int>();
+        if (score < 0 || score > Constants::SCORE_UPPER_BOUND)
+        {
+            /** Ignore invalid scores */
+            continue;
         }
         scores.emplace_back(item["name"].get<std::string>(),
-                            item["score"].get<int>(),
+                            score,
                             item["timestamp"].get<time_t>());
     }
-    std::sort(scores.begin(), scores.end());
+    std::sort(scores.begin(), scores.end(), std::greater<Score>());
     return scores;
 }

@@ -16,7 +16,7 @@ namespace Snake
             std::string name;
             int score;
             time_t timestamp;
-            bool operator<(const Score& other) const;
+            bool operator>(const Score& other) const;
         };
         static void SaveScore(const std::string_view& name, int score);
         static std::vector<Score> LoadScores();
