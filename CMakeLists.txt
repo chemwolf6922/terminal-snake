@@ -27,7 +27,9 @@ add_executable(snake
     GameSession.cpp
     GameOverSession.cpp
     LeaderBoardSession.cpp
+    SettingsSession.cpp
     LeaderBoard.cpp
+    Settings.cpp
     Utility.cpp)
 
 target_link_libraries(snake

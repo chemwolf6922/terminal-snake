@@ -9,7 +9,8 @@ MainSession::MainSession(Tev& tev, Console& console)
       _console(console),
       _mainMenu(console, 30, 15),
       _gameSession(tev, console),
-      _leaderBoardSession(console)
+      _leaderBoardSession(console),
+      _settingsSession(console)
 {
 }
 
@@ -26,6 +27,8 @@ void MainSession::Activate(const int& params)
         return;
     }
     _active = true;
+    /** Load settings */
+    _settings = Settings::Load();
     _console.Clear();
     /** Show banner */
     /** There is an additional \n at the start */
@@ -45,18 +48,28 @@ void MainSession::Activate(const int& params)
         Constants::DISPLAY_HEIGHT - 1);
     /** Activate options */
     _mainMenu.AddOption("[    Start game    ]", [this](){
-        /** @todo get frame time from settings */
-        GameSessionParams params{300};
+        int frameTime = _settings.gameSpeed == Settings::GameSpeed::Slow ? 300 :
+                       _settings.gameSpeed == Settings::GameSpeed::Normal ? 200 :
+                       _settings.gameSpeed == Settings::GameSpeed::Fast ? 133 : 88;
+        GameSessionParams params{
+            frameTime,
+            _settings.useSimpleGraphics
+        };
         SwitchTo(_gameSession, params, std::function<void(const GameSessionResult&)>(
             [this](const auto& result){
                 (void)result;
-                Activate(0);
                 /** @todo if the game did not finish, resume instead of starting a new one */
+                Activate(0);
             }
         ));
     });
     _mainMenu.AddOption("[     Settings     ]", [this](){
-        /** @todo */
+        SwitchTo(_settingsSession, 0, std::function<void(const Settings&)>(
+            [this](const auto& settings){
+                _settings = settings;
+                Activate(0);
+            }
+        ));
     });
     _mainMenu.AddOption("[    High scores   ]", [this](){
         SwitchTo(_leaderBoardSession, 0, std::function<void(const int&)>(
@@ -109,7 +122,7 @@ void MainSession::Close()
     /** propagate close */
     _gameSession.Close();
     _leaderBoardSession.Close();
-    /** @todo */
+    _settingsSession.Close();
 }
 
 MainSession::MainMenu::Option::Option(

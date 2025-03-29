@@ -46,9 +46,9 @@ void LeaderBoard::SaveScore(const std::string_view& name, int scoreNum)
     for (const auto& s : scores)
     {
         scoresJson.push_back({
-            {"name", s.name},
-            {"score", s.score},
-            {"timestamp", s.timestamp}
+            {KEY_NAME, s.name},
+            {KEY_SCORE, s.score},
+            {KEY_TIMESTAMP, s.timestamp}
         });
     }
     std::ofstream file(GetFilePath());
@@ -82,22 +82,22 @@ std::vector<LeaderBoard::Score> LeaderBoard::LoadScores()
     std::vector<Score> scores;
     for (const auto& item : scoresJson)
     {
-        if (!(item.contains("name") && item["name"].is_string())
-            || !(item.contains("score") && item["score"].is_number())
-            || !(item.contains("timestamp") && item["timestamp"].is_number()))
+        if (!(item.contains(KEY_NAME) && item[KEY_NAME].is_string())
+            || !(item.contains(KEY_SCORE) && item[KEY_SCORE].is_number())
+            || !(item.contains(KEY_TIMESTAMP) && item[KEY_TIMESTAMP].is_number()))
         {
             /** Ignore invalid values */
             continue;
         }
-        int score = item["score"].get<int>();
+        int score = item[KEY_SCORE].get<int>();
         if (score < 0 || score > Constants::SCORE_UPPER_BOUND)
         {
             /** Ignore invalid scores */
             continue;
         }
-        scores.emplace_back(item["name"].get<std::string>(),
+        scores.emplace_back(item[KEY_NAME].get<std::string>(),
                             score,
-                            item["timestamp"].get<time_t>());
+                            item[KEY_TIMESTAMP].get<time_t>());
     }
     std::sort(scores.begin(), scores.end(), std::greater<Score>());
     return scores;

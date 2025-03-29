@@ -206,7 +206,8 @@ void GameSession::FrameHandler()
             _score.GetScore(),
             previousHeadLocation.x,
             previousHeadLocation.y,
-            CellTypeToChar(previousHeadType, _params->useSimpleGraphics)
+            CellTypeToChar(previousHeadType, _params->useSimpleGraphics),
+            _params->useSimpleGraphics
         });
         return;
     }
@@ -226,7 +227,8 @@ void GameSession::FrameHandler()
                 _score.GetScore(),
                 previousHeadLocation.x,
                 previousHeadLocation.y,
-                CellTypeToChar(previousHeadType, _params->useSimpleGraphics)
+                CellTypeToChar(previousHeadType, _params->useSimpleGraphics),
+                _params->useSimpleGraphics
             });
             return;
         }

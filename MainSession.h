@@ -4,6 +4,8 @@
 #include "Console.h"
 #include "GameSession.h"
 #include "LeaderBoardSession.h"
+#include "SettingsSession.h"
+#include "Settings.h"
 
 namespace Snake
 {
@@ -44,6 +46,15 @@ namespace Snake
                 std::function<void()> _action;
                 bool _selected{false};
             };
+
+            MainMenu(Console& console, size_t x, size_t y);
+            void AddOption(const std::string_view& text, const std::function<void()>& action);
+            void Bootstrap();
+            void SelectNext();
+            void SelectPrevious();
+            void Confirm();
+            void Clear();
+        private:
             class SelectedOption
             {
             public:
@@ -54,14 +65,6 @@ namespace Snake
                 std::optional<std::vector<Option>::iterator> _option;
             };
 
-            MainMenu(Console& console, size_t x, size_t y);
-            void AddOption(const std::string_view& text, const std::function<void()>& action);
-            void Bootstrap();
-            void SelectNext();
-            void SelectPrevious();
-            void Confirm();
-            void Clear();
-        private:
             Console& _console;
             size_t _x;
             size_t _y;
@@ -74,6 +77,8 @@ namespace Snake
         MainMenu _mainMenu;
         GameSession _gameSession;
         LeaderBoardSession _leaderBoardSession;
+        SettingsSession _settingsSession;
+        Settings _settings{};
         bool _active{false};
         bool _closed{false};
     };

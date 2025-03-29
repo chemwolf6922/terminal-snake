@@ -1,7 +1,5 @@
 #pragma once
 
-#include <tev-cpp/Tev.h>
-
 #include "Session.h"
 #include "Console.h"
 
@@ -21,6 +19,7 @@ namespace Snake
         void Activate(const int& params) override;
         void Deactivate() override;
         void Close() override;
+
     private:
         static constexpr size_t LEFT_MARGIN = 10;
         static constexpr size_t SERIAL_LENGTH = 10;

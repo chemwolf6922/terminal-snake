@@ -21,6 +21,10 @@ namespace Snake
         static void SaveScore(const std::string_view& name, int score);
         static std::vector<Score> LoadScores();
     private:
+        static constexpr std::string_view KEY_NAME = "name";
+        static constexpr std::string_view KEY_SCORE = "score";
+        static constexpr std::string_view KEY_TIMESTAMP = "timestamp";
+
         static std::filesystem::path GetFilePath();
     };
 }
