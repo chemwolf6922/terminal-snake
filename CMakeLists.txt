@@ -25,7 +25,9 @@ add_executable(snake
     Console.cpp
     MainSession.cpp
     GameSession.cpp
-    GameOverSession.cpp)
+    GameOverSession.cpp
+    LeaderBoard.cpp
+    Utility.cpp)
 
 target_link_libraries(snake
     tev-cpp)

@@ -6,5 +6,9 @@ namespace Snake
     {
         constexpr int DISPLAY_WIDTH = 80;
         constexpr int DISPLAY_HEIGHT = 25;
+        constexpr std::string_view SAVE_FILE_ROOT = ".terminal_snake";
+        constexpr std::string_view LEADER_BOARD_FILE = "leaderboard.json";
+        constexpr int LEADER_BOARD_SIZE = 10;
+        constexpr std::string_view SETTINGS_FILE = "settings.json";
     }
 }

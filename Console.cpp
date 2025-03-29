@@ -42,7 +42,7 @@ Console::Console(Tev& tev)
         throw std::runtime_error("fcntl failed");
     }
     /** Set stdin read handler */
-    _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalReadHandler, this));
+    _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
 }
 
 Console::~Console()
@@ -92,7 +92,7 @@ void Console::SetErrorHandler(Console::ErrorHandler handler)
     _errorHandler = handler;
 }
 
-void Console::TerminalReadHandler()
+void Console::TerminalKeyHandler()
 {
     uint8_t buffer[100];
     ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer));
@@ -212,130 +212,142 @@ void Console::SetKeyHandler(EscapedKeys key, Console::KeyHandler handler)
     _keyHandlers[keySequence] = handler;
 }
 
+void Console::TerminalStringHandler()
+{
+    uint8_t buffer[100];
+    ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer));
+    if (bytesRead == 0)
+    {
+        Close();
+        if (_errorHandler)
+        {
+            _errorHandler("EOF");
+        }
+        else
+        {
+            throw std::runtime_error("EOF");
+        }
+    }
+    else if (bytesRead < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            return;
+        }
+        Close();
+        auto errorString = strerror(errno);
+        if (_errorHandler)
+        {
+            _errorHandler(errorString);
+        }
+        else
+        {
+            throw std::runtime_error(errorString);
+        }
+    }
+
+    for (ssize_t i = 0; i < bytesRead; i++)
+    {
+        _inputBuffer.push_back(buffer[i]);
+    }
+    while(!_inputBuffer.empty())
+    {
+        char c = _inputBuffer[0];
+        if (c == '\x1b')
+        {
+            if (_inputBuffer.size() == 1 || _inputBuffer[1] != '[')
+            {
+                _inputBuffer.pop_front();
+            }
+            else
+            {
+                /** escape sequence, find the end */
+                ssize_t end = -1;
+                for (size_t i = 2; i < _inputBuffer.size(); i++)
+                {
+                    if (_inputBuffer[i] >= 0x40 && _inputBuffer[i] <= 0x7E)
+                    {
+                        end = static_cast<ssize_t>(i);
+                        break;
+                    }
+                }
+                if (end == -1)
+                {
+                    /** incomplete */
+                    break;
+                }
+                _inputBuffer.erase(_inputBuffer.begin(), _inputBuffer.begin() + end + 1);
+            }
+        }
+        else if (c == '\n')
+        {
+            _inputBuffer.pop_front();
+            /** input complete */
+            _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
+            /** hide the cursor */
+            std::cout << "\x1b[?25l";
+            std::flush(std::cout);
+            auto handler = std::move(_stringHandler);
+            _stringHandler = nullptr;
+            handler(_inputString.input);
+            return;
+        }
+        else if (c == '\x7F')
+        {
+            _inputBuffer.pop_front();
+            /** backspace */
+            if (!_inputString.input.empty())
+            {
+                _inputString.input.pop_back();
+                std::cout << "\x1b[" << (_inputString.y + 1) << ";" << (_inputString.x + 1) << "H"
+                    << _inputString.input << " ";
+                std::cout << "\x1b[" << (_inputString.y + 1) << ";" << (_inputString.x + 1) << "H"
+                    << _inputString.input;
+                std::flush(std::cout);
+            }
+        }
+        else if ((c < 0x20))
+        {
+            _inputBuffer.pop_front();
+        }
+        else if (_inputString.input.length() >= _inputString.maxLength)
+        {
+            _inputBuffer.pop_front();
+        }
+        else
+        {
+            _inputString.input.push_back(c);
+            std::cout << c;
+            std::flush(std::cout);
+            _inputBuffer.pop_front();
+        }
+    }
+}
+
 void Console::GetString(size_t x, size_t y, size_t maxLength, Console::StringHandler handler)
 {
     /** @todo Support non-ascii utf8 characters */
-
     if (handler == nullptr)
     {
         /** Exit getting string */
+        _stringHandler = nullptr;
+        _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
         /** Hide the cursor */
         std::cout << "\x1b[?25l";
         std::flush(std::cout);
-        _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalReadHandler, this));
         return;
     }
+    _stringHandler = handler;
+    _inputString.input.clear();
+    _inputString.maxLength = maxLength;
+    _inputString.x = x;
+    _inputString.y = y;
+    _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalStringHandler, this));
 
     std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H";
     /** show the cursor */
     std::cout << "\x1b[?25h";
     std::flush(std::cout);
-    struct InputState
-    {
-        std::string input{};
-        bool inEscapeSequence = false;
-    };
-    std::shared_ptr<InputState> state = std::make_shared<InputState>();
-    /** Intercept key inputs and get the string. */
-    _tev.SetReadHandler(STDIN_FILENO, [=,this](){
-        uint8_t buffer[100];
-        ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer));
-        if (bytesRead == 0)
-        {
-            Close();
-            if (_errorHandler)
-            {
-                _errorHandler("EOF");
-            }
-            else
-            {
-                throw std::runtime_error("EOF");
-            }
-        }
-        else if (bytesRead < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                return;
-            }
-            Close();
-            auto errorString = strerror(errno);
-            if (_errorHandler)
-            {
-                _errorHandler(errorString);
-            }
-            else
-            {
-                throw std::runtime_error(errorString);
-            }
-        }
-        /** Ignore all escape sequences */
-        for (ssize_t i = 0; i < bytesRead; i++)
-        {
-            char c = buffer[i];
-            if (c == '\x1b')
-            {
-                if (i == bytesRead - 1)
-                {
-                    /** A single ESC */
-                    continue;
-                }
-                state->inEscapeSequence = true;
-                continue;
-            }
-            if (state->inEscapeSequence)
-            {
-                if (c >= 0x40 && c <= 0x7E)
-                {
-                    state->inEscapeSequence = false;
-                }
-                continue;
-            }
-            if (c == '\n')
-            {
-                /** input complete */
-                /** 
-                 * If we do not make this copy
-                 * state will go out of scope after we reset the read handler
-                 */
-                auto stateRef = state;
-                _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalReadHandler, this));
-                /** hide the cursor */
-                std::cout << "\x1b[?25l";
-                std::flush(std::cout);
-                handler(stateRef->input);
-                return;
-            }
-            if (c == '\x7F')
-            {
-                /** backspace */
-                if (!state->input.empty())
-                {
-                    state->input.pop_back();
-                    std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H"
-                        << state->input << " ";
-                    std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H"
-                        << state->input;
-                    std::flush(std::cout);
-                }
-                continue;
-            }
-            if (c < 0x20)
-            {
-                /** ignore control characters */
-                continue;
-            }
-            if (state->input.size() >= maxLength)
-            {
-                /** ignore */
-                continue;
-            }
-            state->input.push_back(c);
-            std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H"
-                << state->input;
-            std::flush(std::cout);
-        }
-    });
 }
 
 void Console::Clear()

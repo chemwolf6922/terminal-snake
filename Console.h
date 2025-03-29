@@ -97,12 +97,23 @@ namespace Snake
 
         void SetErrorHandler(ErrorHandler handler);
     private:
+        struct StringInputState
+        {
+            std::string input{};
+            size_t maxLength{0};
+            size_t x;
+            size_t y;
+        }; 
+
         Tev& _tev;
         bool _closed{false};
         ErrorHandler _errorHandler{nullptr};
         std::unordered_map<std::string, KeyHandler> _keyHandlers{};
+        StringHandler _stringHandler{nullptr};
         std::deque<char> _inputBuffer{};
+        StringInputState _inputString{};
 
-        void TerminalReadHandler();
+        void TerminalKeyHandler();
+        void TerminalStringHandler();
     };
 } // namespace Snake

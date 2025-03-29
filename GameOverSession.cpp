@@ -1,4 +1,5 @@
 #include "GameOverSession.h"
+#include "LeaderBoard.h"
 
 using namespace Snake;
 
@@ -61,10 +62,8 @@ void GameOverSession::ShowScoreDialog()
     _console.PutString(x, y++, "┗━━━━━━━━━━━━━━━━━━┛");
     std::string scoreStr = std::to_string(_params.score);
     _console.PutString(x + 10, y - 3, scoreStr);
-    /** @todo name input */
     _console.GetString(x + 10, y - 2, 9, [this](const std::string_view& name){
-        /** @todo save score */
-        (void)name;
+        LeaderBoard::SaveScore(name, _params.score);
         SwitchBack(0);
     });
 }
