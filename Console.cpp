@@ -42,7 +42,6 @@ Console::Console(Tev& tev)
         throw std::runtime_error("fcntl failed");
     }
     /** Set stdin read handler */
-    _readHandler.reset();
     _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
 }
 
@@ -284,7 +283,6 @@ void Console::TerminalStringHandler()
         {
             _inputBuffer.pop_front();
             /** input complete */
-            _readHandler.reset();
             _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
             /** hide the cursor */
             std::cout << "\x1b[?25l";
@@ -333,7 +331,6 @@ void Console::GetString(size_t x, size_t y, size_t maxLength, Console::StringHan
     {
         /** Exit getting string */
         _stringHandler = nullptr;
-        _readHandler.reset();
         _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
         /** Hide the cursor */
         std::cout << "\x1b[?25l";
@@ -345,7 +342,6 @@ void Console::GetString(size_t x, size_t y, size_t maxLength, Console::StringHan
     _inputString.maxLength = maxLength;
     _inputString.x = x;
     _inputString.y = y;
-    _readHandler.reset();
     _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalStringHandler, this));
 
     std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H";
