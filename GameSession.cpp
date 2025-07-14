@@ -114,7 +114,7 @@ void GameSession::Deactivate()
     }
     _active = false;
     /** release frame timer */
-    _tev.ClearTimeout(_frameTimerHandle);
+    _frameTimerHandle.reset();
     /** release input handlers */
     _console.SetKeyHandler('\x1b', nullptr);
     _console.SetKeyHandler(Console::EscapedKeys::Up, nullptr);

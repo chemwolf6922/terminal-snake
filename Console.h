@@ -7,6 +7,7 @@
 #include <deque>
 #include <functional>
 #include <unordered_map>
+#include <optional>
 
 namespace Snake
 {
@@ -112,6 +113,7 @@ namespace Snake
         StringHandler _stringHandler{nullptr};
         std::deque<char> _inputBuffer{};
         StringInputState _inputString{};
+        std::optional<Tev::FdHandler> _readHandler{std::nullopt};
 
         void TerminalKeyHandler();
         void TerminalStringHandler();

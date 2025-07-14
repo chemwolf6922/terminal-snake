@@ -25,7 +25,7 @@ SignalManager::SignalManager(Tev& tev)
     {
         throw std::runtime_error("eventfd failed");
     }
-    _tev.SetReadHandler(_eventFd, [this](){
+    _readHandler = _tev.SetReadHandler(_eventFd, [this](){
         eventfd_t value = 0;
         int rc = eventfd_read(_eventFd, &value);
         if (rc != 0)
@@ -58,7 +58,7 @@ void SignalManager::Close()
     }
     if (_eventFd != -1)
     {
-        _tev.SetReadHandler(_eventFd, nullptr);
+        _readHandler.reset();
         close(_eventFd);
         _eventFd = -1;
     }

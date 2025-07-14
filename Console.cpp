@@ -42,7 +42,8 @@ Console::Console(Tev& tev)
         throw std::runtime_error("fcntl failed");
     }
     /** Set stdin read handler */
-    _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
+    _readHandler.reset();
+    _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
 }
 
 Console::~Console()
@@ -64,7 +65,7 @@ void Console::Close()
     }
     _closed = true;
     /** Remove stdin read handler */
-    _tev.SetReadHandler(STDIN_FILENO, nullptr);
+    _readHandler.reset();
     /** Reset cursor position and color */
     PutString(0, 0, "\x1b[0m");
     /** Clear screen */
@@ -283,7 +284,8 @@ void Console::TerminalStringHandler()
         {
             _inputBuffer.pop_front();
             /** input complete */
-            _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
+            _readHandler.reset();
+            _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
             /** hide the cursor */
             std::cout << "\x1b[?25l";
             std::flush(std::cout);
@@ -331,7 +333,8 @@ void Console::GetString(size_t x, size_t y, size_t maxLength, Console::StringHan
     {
         /** Exit getting string */
         _stringHandler = nullptr;
-        _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
+        _readHandler.reset();
+        _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalKeyHandler, this));
         /** Hide the cursor */
         std::cout << "\x1b[?25l";
         std::flush(std::cout);
@@ -342,7 +345,8 @@ void Console::GetString(size_t x, size_t y, size_t maxLength, Console::StringHan
     _inputString.maxLength = maxLength;
     _inputString.x = x;
     _inputString.y = y;
-    _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalStringHandler, this));
+    _readHandler.reset();
+    _readHandler = _tev.SetReadHandler(STDIN_FILENO, std::bind(&Console::TerminalStringHandler, this));
 
     std::cout << "\x1b[" << (y + 1) << ";" << (x + 1) << "H";
     /** show the cursor */
