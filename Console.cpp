@@ -64,7 +64,7 @@ void Console::Close()
     }
     _closed = true;
     /** Remove stdin read handler */
-    _readHandler.reset();
+    _readHandler.Clear();
     /** Reset cursor position and color */
     PutString(0, 0, "\x1b[0m");
     /** Clear screen */

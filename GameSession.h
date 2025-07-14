@@ -111,7 +111,7 @@ namespace Snake
         RandomPool<Coordinate> _emptyCells{};
         Direction _direction{Direction::Right};
         Direction _pendingDirection{Direction::Right};
-        std::optional<Tev::Timeout> _frameTimerHandle{std::nullopt};
+        Tev::Timeout _frameTimerHandle{};
         std::optional<GameSessionParams> _params{};
 
         void SetupGame(bool reset = true);

@@ -58,7 +58,7 @@ void SignalManager::Close()
     }
     if (_eventFd != -1)
     {
-        _readHandler.reset();
+        _readHandler.Clear();
         close(_eventFd);
         _eventFd = -1;
     }

@@ -113,7 +113,7 @@ namespace Snake
         StringHandler _stringHandler{nullptr};
         std::deque<char> _inputBuffer{};
         StringInputState _inputString{};
-        std::optional<Tev::FdHandler> _readHandler{std::nullopt};
+        Tev::FdHandler _readHandler{};
 
         void TerminalKeyHandler();
         void TerminalStringHandler();

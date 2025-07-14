@@ -4,7 +4,6 @@
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include <optional>
 
 namespace Snake
 {
@@ -28,7 +27,7 @@ namespace Snake
         Tev& _tev;
         int _eventFd = -1;
         std::unordered_map<int, std::function<void()>> _handlers{};
-        std::optional<Tev::FdHandler> _readHandler{std::nullopt};
+        Tev::FdHandler _readHandler{};
     
         SignalManager(Tev& tev);
     };

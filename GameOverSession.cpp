@@ -76,7 +76,7 @@ void GameOverSession::Deactivate()
     }
     _active = false;
     _console.GetString(0, 0, 0, nullptr);
-    _animationTimer.reset();
+    _animationTimer.Clear();
 }
 
 void GameOverSession::Close()

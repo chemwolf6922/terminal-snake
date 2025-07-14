@@ -1,5 +1,4 @@
 #include <tev-cpp/Tev.h>
-#include <optional>
 #include "Session.h"
 #include "Console.h"
 
@@ -43,7 +42,7 @@ namespace Snake
         bool _active{false};
         bool _closed{false};
         GameOverSessionParams _params{};
-        std::optional<Tev::Timeout> _animationTimer{std::nullopt};
+        Tev::Timeout _animationTimer{};
 
         void PlayAnimation(AnimationState state);
         void ShowScoreDialog();
