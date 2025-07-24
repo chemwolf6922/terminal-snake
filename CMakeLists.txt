@@ -31,6 +31,3 @@ add_executable(snake
     LeaderBoard.cpp
     Settings.cpp
     Utility.cpp)
-
-target_link_libraries(snake
-    tev-cpp)
